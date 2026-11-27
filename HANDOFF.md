@@ -10,10 +10,11 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
 
 ## Current state
 
-- v0.1.0 works. 41 unit tests pass (`py -3.12 -m pytest -q`).
+- v0.1.0 works. 45 unit tests pass (`py -3.12 -m pytest -q`).
 - Live `status` against the real phone is correct (USB + TLS link seen).
 - Allowlist (local config): "Pribadi", "Kos gk atas" (exact, case-sensitive).
 - Notifications go to the phone (`notify_target = "phone"`), PC toast as fallback. Verified live.
+- "Disconnected" notification on link loss: phone over USB, else PC toast.
 - Startup shortcut installed and watcher running (log: `%LOCALAPPDATA%\AutoWirelessADB\watch.log`).
 - USB enable flow worked live (log 2026-11-27 11:23).
 - Logon watcher looked "silent" twice: cause found. The agent's tool shell sees
