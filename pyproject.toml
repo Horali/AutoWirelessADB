@@ -1,0 +1,15 @@
+[project]
+name = "autowirelessadb"
+version = "0.1.0"
+description = "Auto-switch an Android phone to TLS wireless ADB on trusted Wi-Fi (Windows)"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+autowirelessadb = "autowirelessadb.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

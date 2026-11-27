@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+report.html
+
+# Local config, logs and secrets (config lives in %APPDATA% anyway)
+config.toml
+*.log
+logs/
+.env
+*.key
+adbkey*
+
+# Media and screenshots
+*.png
+*.jpg
+*.jpeg
+*.mp4
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.claude/settings.local.json
