@@ -10,10 +10,10 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
 
 ## Current state
 
-- v0.1.0 works. 34 unit tests pass (`py -3.12 -m pytest -q`).
+- v0.1.0 works. 39 unit tests pass (`py -3.12 -m pytest -q`).
 - Live `status` against the real phone is correct (USB + TLS link seen).
 - Allowlist (local config): "Pribadi", "Kos gk atas" (exact, case-sensitive).
-- Live `connect` on Wi-Fi works and shows the toast.
+- Notifications go to the phone (`notify_target = "phone"`), PC toast as fallback. Verified live.
 - Startup shortcut installed and watcher running (log: `%LOCALAPPDATA%\AutoWirelessADB\watch.log`).
 - USB enable flow worked live (log 2026-11-27 11:23).
 - Logon run on 2026-11-27 12:04 hung silently for 5 h (no log, no SSID). Cause
@@ -35,6 +35,8 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
 - Security: fail closed. Both the Windows SSID and the phone SSID must be in
   the allowlist before `adb_wifi_enabled 1`. Legacy tcpip is opt-in only.
 - Toasts use WinRT through PowerShell (no extra packages).
+- Phone notifications: `cmd notification post`. Android drops posts from root,
+  so post as uid 2000 (`su 2000 -c`). Samsung Game Booster may hide them in games.
 - `status` must stay read-only.
 - My tool shell may be sandboxed; start or read the real watcher outside it.
 - schtasks ONLOGON needs admin (Access is denied); use a Startup folder shortcut.
