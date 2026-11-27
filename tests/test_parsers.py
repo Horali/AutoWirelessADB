@@ -125,6 +125,18 @@ def test_config_defaults_and_allowlist(tmp_path):
     assert not cfg.ssid_allowed("homenet")  # exact match only
 
 
+def test_add_ssid_keeps_other_settings(tmp_path):
+    p = tmp_path / "config.toml"
+    config.load(p)  # writes the default file
+    assert config.add_ssid("Pribadi", p) == ["Pribadi"]
+    assert config.add_ssid('Kos "gk" atas', p) == ["Pribadi", 'Kos "gk" atas']
+    assert config.add_ssid("Pribadi", p) == ["Pribadi", 'Kos "gk" atas']  # no duplicate
+    cfg = config.load(p)
+    assert cfg.allowed_ssids == ["Pribadi", 'Kos "gk" atas']
+    assert cfg.fallback_tcpip is False
+    assert "# allowed_ssids = [\"MyHomeWifi\"]" in p.read_text(encoding="utf-8")  # comment untouched
+
+
 def test_toast_script_escapes():
     s = notify.build_script("A & B", "it's <ok>")
     assert "A &amp; B" in s

@@ -32,8 +32,9 @@ as "not allowed".
 1. Pair this PC with the phone one time (Developer options > Wireless
    debugging > Pair device). The phone must trust this PC over Wi-Fi.
 2. Run `py -3.12 -m autowirelessadb status`. This creates the config file.
-3. Open the config file (`py -3.12 -m autowirelessadb config-path` shows it)
-   and add your home network: `allowed_ssids = ["MyHomeWifi"]`.
+3. Add your home network: `py -3.12 -m autowirelessadb allow "MyHomeWifi"`.
+   (Or edit the file that `config-path` shows.) Run this in your own
+   terminal, not from a sandboxed tool, so the real config file changes.
 4. Run `py -3.12 -m autowirelessadb connect` to test one pass.
 5. Run `py -3.12 -m autowirelessadb install-startup` to start the watcher at
    logon. This adds `AutoWirelessADB.lnk` to your Startup folder (no admin
@@ -48,6 +49,7 @@ as "not allowed".
 | `status` | Show the state. Read-only: it changes nothing. |
 | `off` | Set `adb_wifi_enabled 0`, reset legacy tcpip mode, disconnect. |
 | `install-startup` / `uninstall-startup` | Add or remove the Startup folder shortcut. |
+| `allow <SSID>` | Add a Wi-Fi network to the allowlist (exact name). |
 | `config-path` | Print the config file path. |
 
 Global flags: `--config <path>`, `-v`, `--fallback-tcpip`.

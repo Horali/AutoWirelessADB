@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import os
+import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -76,6 +78,26 @@ class Config:
     def ssid_allowed(self, ssid: str | None) -> bool:
         # Fail closed: unknown SSID is never allowed.
         return bool(ssid) and ssid in self.allowed_ssids
+
+
+_ALLOWED_LINE = re.compile(r"(?m)^allowed_ssids\s*=.*$")
+
+
+def add_ssid(ssid: str, path: Path | None = None) -> list[str]:
+    """Add one SSID to allowed_ssids in config.toml. Returns the new list."""
+    path = path or default_config_path()
+    cfg = load(path)
+    if ssid not in cfg.allowed_ssids:
+        cfg.allowed_ssids.append(ssid)
+    # json.dumps gives valid TOML basic strings (quotes and backslashes escaped).
+    line = "allowed_ssids = [" + ", ".join(json.dumps(s) for s in cfg.allowed_ssids) + "]"
+    text = path.read_text(encoding="utf-8")
+    if _ALLOWED_LINE.search(text):
+        text = _ALLOWED_LINE.sub(lambda _: line, text, count=1)
+    else:
+        text = text.rstrip() + "\n" + line + "\n"
+    path.write_text(text, encoding="utf-8")
+    return cfg.allowed_ssids
 
 
 def load(path: Path | None = None, create: bool = True) -> Config:

@@ -233,6 +233,10 @@ class Controller:
 
     def watch(self, stop: Callable[[], bool] = lambda: False) -> None:
         log.info("watching %s (allowed SSIDs: %s)", self.cfg.serial, self.cfg.allowed_ssids)
+        if not self.cfg.allowed_ssids:
+            # Without this the watcher idles forever and nobody notices.
+            log.warning("allowed_ssids is empty: wireless ADB will never be used")
+            self.notify("AutoWirelessADB is idle", "No allowed Wi-Fi in config.toml. Run: autowirelessadb allow <SSID>")
         next_heartbeat = self.clock()
         while not stop():
             try:

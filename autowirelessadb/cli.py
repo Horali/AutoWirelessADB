@@ -57,6 +57,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("install-startup", help="run `watch` at logon (Startup folder shortcut)")
     sub.add_parser("uninstall-startup", help="remove the Startup folder shortcut")
     sub.add_parser("config-path", help="print the config file path")
+    al = sub.add_parser("allow", help="add a Wi-Fi network (exact SSID) to the allowlist")
+    al.add_argument("ssid")
     return p
 
 
@@ -67,6 +69,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "config-path":
         print(cfg_path)
+        return 0
+    if args.cmd == "allow":
+        ssids = _config.add_ssid(args.ssid, cfg_path)
+        print(f"allowed_ssids = {ssids}  ({cfg_path})")
+        print("Restart the watcher to use it (log off and on, or start the Startup shortcut).")
         return 0
     if args.cmd == "install-startup":
         res = _startup.install()

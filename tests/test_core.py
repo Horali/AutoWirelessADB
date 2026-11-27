@@ -165,6 +165,21 @@ def test_off_over_wireless_only():
     assert ["-s", "192.168.1.6:38605", "shell", "settings", "put", "global", "adb_wifi_enabled", "0"] in phone.adb_calls()
 
 
+def test_watch_warns_when_allowlist_empty():
+    phone = FakePhone()
+    ctl, toasts, _ = make(phone)
+    ctl.cfg.allowed_ssids = []
+    n = {"i": 0}
+
+    def stop():
+        n["i"] += 1
+        return n["i"] > 2
+
+    ctl.watch(stop=stop)
+    assert toasts and toasts[0][0] == "AutoWirelessADB is idle"
+    assert enabled_writes(phone) == []
+
+
 def test_watch_survives_errors():
     phone = FakePhone()
     ctl, _, _ = make(phone)
