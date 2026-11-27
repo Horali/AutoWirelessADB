@@ -14,13 +14,15 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
 - Live `status` against the real phone is correct (USB + TLS link seen).
 - Allowlist (local config): "Pribadi", "Kos gk atas" (exact, case-sensitive).
 - Live `connect` on Wi-Fi works and shows the toast.
-- Not yet run live: the USB enable flow, and `install-startup`.
+- Startup shortcut installed and watcher running (log: `%LOCALAPPDATA%\AutoWirelessADB\watch.log`).
+- Not yet run live: the USB enable flow (wireless debugging off + USB in).
 
 ## Next steps
 
-1. Run `connect` with USB plugged in and wireless debugging off; confirm the toast.
-2. Run `install-startup`; log off and on; check `watch.log`.
-3. Optional: tray icon (needs `pystray` + `Pillow`), behind a flag.
+1. Turn wireless debugging off, plug in USB; confirm the watcher enables it and toasts.
+2. After the next logon, check `watch.log` shows a new "watching" line.
+3. Optional: single-instance guard so a manual `watch` does not run twice.
+4. Optional: tray icon (needs `pystray` + `Pillow`), behind a flag.
 
 ## Decisions and lessons (keep)
 
@@ -31,6 +33,7 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
   the allowlist before `adb_wifi_enabled 1`. Legacy tcpip is opt-in only.
 - Toasts use WinRT through PowerShell (no extra packages).
 - `status` must stay read-only.
+- schtasks ONLOGON needs admin (Access is denied); use a Startup folder shortcut.
 - Config and logs stay outside the repo (`%APPDATA%`, `%LOCALAPPDATA%`).
 
 ## Where to look
