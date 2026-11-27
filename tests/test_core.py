@@ -165,6 +165,52 @@ def test_off_over_wireless_only():
     assert ["-s", "192.168.1.6:38605", "shell", "settings", "put", "global", "adb_wifi_enabled", "0"] in phone.adb_calls()
 
 
+def test_disconnect_notifies_once_on_pc_when_no_usb():
+    phone = FakePhone(usb=False, wifi_enabled=True)
+    ctl, toasts, _ = make(phone, notify_target="phone")
+    ctl.tick()
+    assert len(phone.notifications) == 1  # "connected" on the phone
+    phone.pc_ssid = "Airport"
+    ctl.tick()
+    ctl.tick()  # no repeat
+    assert toasts == [("Wireless ADB disconnected", "Wi-Fi 'Airport' is not on the allowlist.")]
+
+
+def test_disconnect_posts_to_phone_over_usb():
+    phone = FakePhone(wifi_enabled=True)
+    ctl, toasts, _ = make(phone, notify_target="phone")
+    ctl.tick()
+    # The TLS service goes away and stays away (a re-enable over USB cannot fix it).
+    phone.advertise_after_enable = False
+    phone.connected.clear()
+    st = ctl.tick()
+    assert f"lost {phone.endpoint}" in st.actions
+    via, script = phone.notifications[-1]
+    assert via == SERIAL and "Wireless ADB disconnected" in script
+    assert toasts == []
+
+
+def test_port_rotation_is_not_a_disconnect():
+    phone = FakePhone(usb=False, wifi_enabled=True)
+    ctl, toasts, _ = make(phone)
+    ctl.tick()
+    phone.tls_port = 41234
+    ctl.tick()
+    assert [t for t, _ in toasts] == ["Wireless ADB connected", "Wireless ADB connected"]
+
+
+def test_reconnect_after_disconnect_announces_again():
+    phone = FakePhone(usb=False, wifi_enabled=True)
+    ctl, toasts, _ = make(phone)
+    ctl.tick()
+    phone.pc_ssid = "Airport"
+    ctl.tick()
+    phone.pc_ssid = "HomeNet"
+    ctl.tick()
+    assert [t for t, _ in toasts] == [
+        "Wireless ADB connected", "Wireless ADB disconnected", "Wireless ADB connected"]
+
+
 def test_watch_warns_when_allowlist_empty():
     phone = FakePhone()
     ctl, toasts, _ = make(phone)

@@ -23,6 +23,9 @@ Each check (every 5 s in `watch` mode):
    wireless link: "Safe to unplug USB." Set `notify_target` to `"phone"`
    (default), `"pc"` (Windows toast) or `"both"`. If the phone post fails,
    the watcher shows a PC toast instead.
+6. When the link is lost (or Windows leaves an allowed network), show
+   "Wireless ADB disconnected" with the reason. The phone gets it only over
+   USB; with no USB it is a PC toast, because the phone is out of reach.
 
 Every device command uses `adb -s <serial>`. An unknown or hidden SSID counts
 as "not allowed".

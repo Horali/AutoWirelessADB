@@ -87,9 +87,8 @@ class Controller:
         return None
 
     def _forget(self, net_serial: str) -> None:
+        # _announced is left alone on purpose: _finish() uses it to notice a lost link.
         self._serial_cache.pop(net_serial, None)
-        if self._announced == net_serial:
-            self._announced = None
 
     def _connect_verified(self, endpoint: str) -> bool:
         if not self.adb.connect(endpoint):
@@ -134,7 +133,7 @@ class Controller:
                 self._forget(st.wireless)
                 st.actions.append(f"disconnected {st.wireless} (untrusted Wi-Fi)")
                 st.wireless = None
-            return st
+            return self._finish(st)
 
         st.tls_endpoint = tls_endpoint_for(self.adb.mdns_services(), self.cfg.serial)
 
@@ -156,8 +155,24 @@ class Controller:
                 st.actions.append(f"enabled and connected {endpoint}")
                 st.wireless = endpoint
 
+        return self._finish(st)
+
+    def _finish(self, st: Status) -> Status:
+        """Notify on a new link, or on the loss of the link we announced."""
         if st.wireless:
             self._announce(st.wireless, st.usb)
+        elif self._announced:
+            lost, self._announced = self._announced, None
+            if not st.ssid:
+                why = "The PC has no Wi-Fi."
+            elif not st.ssid_allowed:
+                why = f"Wi-Fi {st.ssid!r} is not on the allowlist."
+            else:
+                why = f"The link to {lost} stopped."
+            st.actions.append(f"lost {lost}")
+            # The wireless link is gone, so only USB can still reach the phone.
+            # With no USB, notify() falls back to the PC toast.
+            self.notify("Wireless ADB disconnected", why, self.cfg.serial if st.usb else None)
         return st
 
     def _may_enable(self) -> bool:
