@@ -19,7 +19,10 @@ Each check (every 5 s in `watch` mode):
    (`cmd wifi status`). If that SSID is also allowed, run
    `settings put global adb_wifi_enabled 1`, wait for the TLS endpoint,
    connect, and verify with `shell echo`.
-5. When the link works, show a toast: "Safe to unplug USB."
+5. When the link works, post a notification on the phone through the new
+   wireless link: "Safe to unplug USB." Set `notify_target` to `"phone"`
+   (default), `"pc"` (Windows toast) or `"both"`. If the phone post fails,
+   the watcher shows a PC toast instead.
 
 Every device command uses `adb -s <serial>`. An unknown or hidden SSID counts
 as "not allowed".

@@ -33,6 +33,8 @@ class FakePhone:
     connect_ok: bool = True
     pc_ssid: str | None = "HomeNet"
     calls: list[list[str]] = field(default_factory=list)
+    notif_ok: bool = True
+    notifications: list[tuple[str, str]] = field(default_factory=list)  # (via, script)
 
     @property
     def tls_up(self) -> bool:
@@ -106,6 +108,11 @@ class FakePhone:
             return Result(0, "")
         if cmd == ["settings", "get", "global", "adb_wifi_enabled"]:
             return Result(0, "1\n" if self.wifi_enabled else "0\n")
+        if len(cmd) == 1 and cmd[0].startswith("if command -v su"):
+            if not self.notif_ok:
+                return Result(0, "")
+            self.notifications.append((target, cmd[0]))
+            return Result(0, "posting for user 0:\n")
         if cmd == ["cmd", "wifi", "status"]:
             return Result(0, f'Wifi is enabled\nWifi is connected to "{self.phone_ssid}"\n')
         if cmd == ["getprop", "service.adb.tcp.port"]:

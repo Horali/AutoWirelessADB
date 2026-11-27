@@ -9,6 +9,7 @@ from .fakes import ADB, SERIAL, Clock, FakePhone
 
 
 def make(phone: FakePhone, **cfg_kw):
+    cfg_kw.setdefault("notify_target", "pc")
     cfg = Config(serial=SERIAL, adb_path=ADB, allowed_ssids=["HomeNet"], enable_timeout=10, **cfg_kw)
     clock = Clock()
     toasts = []
@@ -183,3 +184,36 @@ def test_cli_parser(cmd):
     from autowirelessadb.cli import build_parser
 
     assert build_parser().parse_args([cmd]).cmd == cmd
+
+
+def test_phone_notification_goes_over_wireless_link():
+    phone = FakePhone()
+    ctl, toasts, _ = make(phone, notify_target="phone")
+    ctl.tick()
+    assert toasts == []
+    assert len(phone.notifications) == 1
+    via, script = phone.notifications[0]
+    assert via == phone.endpoint  # posted through the wireless link, not USB
+    assert "su 2000 -c" in script and "cmd notification post" in script
+    assert "Safe to unplug USB." in script
+
+
+def test_phone_notification_failure_falls_back_to_pc():
+    phone = FakePhone(notif_ok=False)
+    ctl, toasts, _ = make(phone, notify_target="phone")
+    ctl.tick()
+    assert len(toasts) == 1
+
+
+def test_notify_both():
+    phone = FakePhone(usb=False, wifi_enabled=True)
+    ctl, toasts, _ = make(phone, notify_target="both")
+    ctl.tick()
+    assert len(toasts) == 1 and len(phone.notifications) == 1
+
+
+def test_notifications_off():
+    phone = FakePhone(usb=False, wifi_enabled=True)
+    ctl, toasts, _ = make(phone, notify_target="both", notifications=False)
+    ctl.tick()
+    assert toasts == [] and phone.notifications == []

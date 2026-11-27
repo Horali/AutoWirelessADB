@@ -59,9 +59,18 @@ class Controller:
         self._was_allowed: bool | None = None
 
     # --- helpers ----------------------------------------------------------
-    def notify(self, title: str, body: str) -> None:
+    def notify(self, title: str, body: str, serial: str | None = None) -> None:
+        """Notify on the phone (through `serial`), the PC, or both."""
         log.info("notify: %s - %s", title, body)
-        if self.cfg.notifications:
+        if not self.cfg.notifications:
+            return
+        target = self.cfg.notify_target
+        on_phone = False
+        if target in ("phone", "both") and serial:
+            on_phone = self.adb.post_notification(serial, title, body)
+            if not on_phone:
+                log.warning("phone notification failed; using PC toast")
+        if target in ("pc", "both") or not on_phone:
             self._toast(title, body)
 
     def _owner(self, net_serial: str) -> str | None:
@@ -98,10 +107,11 @@ class Controller:
         if self._announced == endpoint:
             return
         self._announced = endpoint
+        # Post through the wireless link: that also proves it carries commands.
         if usb:
-            self.notify("Wireless ADB connected", f"Safe to unplug USB. ({endpoint})")
+            self.notify("Wireless ADB connected", f"Safe to unplug USB. ({endpoint})", endpoint)
         else:
-            self.notify("Wireless ADB connected", endpoint)
+            self.notify("Wireless ADB connected", endpoint, endpoint)
 
     # --- main step --------------------------------------------------------
     def tick(self) -> Status:

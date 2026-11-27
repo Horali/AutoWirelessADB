@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 from dataclasses import dataclass
 
 from . import runner as _runner
@@ -109,6 +110,22 @@ class Adb:
         if not res.ok:
             return None
         return res.stdout.strip() == "1"
+
+    def post_notification(self, serial: str, title: str, body: str, tag: str = "awadb") -> bool:
+        """Show a notification on the phone (`cmd notification post`).
+
+        On a rooted phone `adb shell` is root, and Android drops notifications
+        posted as root. So post as the shell user (uid 2000) through `su`, and
+        fall back to a plain post on phones without `su`. The same tag replaces
+        the previous notification instead of stacking.
+        """
+        post = " ".join(
+            ["cmd", "notification", "post", "-S", "bigtext", "-t", shlex.quote(title),
+             shlex.quote(tag), shlex.quote(body)]
+        )
+        script = f"if command -v su >/dev/null 2>&1; then su 2000 -c {shlex.quote(post)}; else {post}; fi"
+        res = self.shell(serial, script)
+        return res.ok and "posting" in res.stdout.lower()
 
     def phone_ssid(self, serial: str) -> str | None:
         """SSID the phone itself is on (from `cmd wifi status`)."""

@@ -156,3 +156,20 @@ def test_startup_uninstall(tmp_path):
     assert startup.uninstall(lnk).ok
     assert not lnk.exists()
     assert startup.uninstall(lnk).ok  # second call is harmless
+
+
+def test_post_notification_quotes_text():
+    calls = []
+
+    def run(args, timeout):
+        calls.append(list(args))
+        return Result(0, "posting for user 0:")
+
+    a = adb.Adb("adb.exe", run)
+    assert a.post_notification("RRCY1032Y6F", "It's on", "Safe; unplug $USB")
+    script = calls[0][-1]
+    assert calls[0][1:4] == ["-s", "RRCY1032Y6F", "shell"]
+    # Text must stay inert in the phone shell: no bare $ or ; outside quotes.
+    import shlex
+    inner = list(shlex.shlex(script, posix=True, punctuation_chars=True))
+    assert "Safe; unplug $USB" in shlex.split(inner[inner.index("-c") + 1])

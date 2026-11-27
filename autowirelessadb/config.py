@@ -52,8 +52,12 @@ fallback_tcpip = false
 # Disconnect wireless ADB on the PC side when Windows leaves an allowed network.
 disconnect_on_untrusted = true
 
-# Show Windows toast notifications.
+# Show notifications when wireless ADB connects.
 notifications = true
+
+# Where to show them: "phone", "pc" or "both".
+# "phone" falls back to a PC toast if the phone post fails.
+notify_target = "phone"
 """
 
 
@@ -67,6 +71,7 @@ class Config:
     fallback_tcpip: bool = False
     disconnect_on_untrusted: bool = True
     notifications: bool = True
+    notify_target: str = "phone"  # "phone" | "pc" | "both"
 
     def ssid_allowed(self, ssid: str | None) -> bool:
         # Fail closed: unknown SSID is never allowed.
