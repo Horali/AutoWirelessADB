@@ -12,15 +12,15 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
 
 - v0.1.0 works. 31 unit tests pass (`py -3.12 -m pytest -q`).
 - Live `status` against the real phone is correct (USB + TLS link seen).
-- Not yet run live: `connect` / `watch` enable flow, toast, `install-startup`.
-  Reason: `allowed_ssids` is empty until the user adds their network.
+- Allowlist (local config): "Pribadi", "Kos gk atas" (exact, case-sensitive).
+- Live `connect` on Wi-Fi works and shows the toast.
+- Not yet run live: the USB enable flow, and `install-startup`.
 
 ## Next steps
 
-1. User adds their home SSID to `%APPDATA%\AutoWirelessADB\config.toml`.
-2. Run `connect` with USB plugged in; confirm the toast shows.
-3. Run `install-startup`; log off and on; check `watch.log`.
-4. Optional: tray icon (needs `pystray` + `Pillow`), behind a flag.
+1. Run `connect` with USB plugged in and wireless debugging off; confirm the toast.
+2. Run `install-startup`; log off and on; check `watch.log`.
+3. Optional: tray icon (needs `pystray` + `Pillow`), behind a flag.
 
 ## Decisions and lessons (keep)
 
