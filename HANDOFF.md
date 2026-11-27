@@ -10,19 +10,22 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
 
 ## Current state
 
-- v0.1.0 works. 31 unit tests pass (`py -3.12 -m pytest -q`).
+- v0.1.0 works. 34 unit tests pass (`py -3.12 -m pytest -q`).
 - Live `status` against the real phone is correct (USB + TLS link seen).
 - Allowlist (local config): "Pribadi", "Kos gk atas" (exact, case-sensitive).
 - Live `connect` on Wi-Fi works and shows the toast.
 - Startup shortcut installed and watcher running (log: `%LOCALAPPDATA%\AutoWirelessADB\watch.log`).
-- Not yet run live: the USB enable flow (wireless debugging off + USB in).
+- USB enable flow worked live (log 2026-11-27 11:23).
+- Logon run on 2026-11-27 12:04 hung silently for 5 h (no log, no SSID). Cause
+  unknown. Added: 20 s startup delay, stderr to `watch.stderr.log`, a log line
+  with the reason when netsh gives no SSID, and an "alive" line every 30 min.
 
 ## Next steps
 
-1. Turn wireless debugging off, plug in USB; confirm the watcher enables it and toasts.
-2. After the next logon, check `watch.log` shows a new "watching" line.
-3. Optional: single-instance guard so a manual `watch` does not run twice.
-4. Optional: tray icon (needs `pystray` + `Pillow`), behind a flag.
+1. After the next logon, check `watch.log` has "startup delay", "watching" and
+   "alive" lines. If not, read `watch.stderr.log` and any "no SSID:" reason.
+2. Optional: single-instance guard so a manual `watch` does not run twice.
+3. Optional: tray icon (needs `pystray` + `Pillow`), behind a flag.
 
 ## Decisions and lessons (keep)
 
@@ -33,6 +36,7 @@ to TLS wireless ADB on allowed Wi-Fi. Repo: github.com/Horali/AutoWirelessADB
   the allowlist before `adb_wifi_enabled 1`. Legacy tcpip is opt-in only.
 - Toasts use WinRT through PowerShell (no extra packages).
 - `status` must stay read-only.
+- My tool shell may be sandboxed; start or read the real watcher outside it.
 - schtasks ONLOGON needs admin (Access is denied); use a Startup folder shortcut.
 - Config and logs stay outside the repo (`%APPDATA%`, `%LOCALAPPDATA%`).
 
