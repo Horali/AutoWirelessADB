@@ -15,6 +15,7 @@ from .config import Config
 log = logging.getLogger(__name__)
 
 ENABLE_BACKOFF = 60.0  # seconds between enable attempts for one USB session
+HEARTBEAT = 1800.0  # seconds between "alive" log lines in watch mode
 
 
 @dataclass
@@ -222,11 +223,16 @@ class Controller:
 
     def watch(self, stop: Callable[[], bool] = lambda: False) -> None:
         log.info("watching %s (allowed SSIDs: %s)", self.cfg.serial, self.cfg.allowed_ssids)
+        next_heartbeat = self.clock()
         while not stop():
             try:
                 st = self.tick()
                 for action in st.actions:
                     log.info(action)
+                if self.clock() >= next_heartbeat:
+                    # Proof of life, so a silent log means a real problem.
+                    log.info("alive: ssid=%r usb=%s wireless=%s", st.ssid, st.usb, st.wireless)
+                    next_heartbeat = self.clock() + HEARTBEAT
             except Exception:  # keep the watcher alive
                 log.exception("tick failed")
             self.sleep(self.cfg.poll_interval)

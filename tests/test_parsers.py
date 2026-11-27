@@ -34,6 +34,22 @@ def test_current_ssid_netsh_failure():
     assert wifi.current_ssid(lambda a, t: Result(1, "")) is None
 
 
+def test_no_ssid_reason_logged_once(caplog):
+    wifi._last_problem = None
+    text = "Network shell commands need location permission to access WLAN information."
+    with caplog.at_level("WARNING"):
+        for _ in range(3):
+            assert wifi.current_ssid(lambda a, t: Result(0, text)) is None
+    msgs = [r.getMessage() for r in caplog.records if "no SSID" in r.getMessage()]
+    assert msgs == ["no SSID: netsh hides the SSID: location access is off for desktop apps"]
+    wifi.current_ssid(lambda a, t: Result(0, NETSH_REAL))
+    assert wifi._last_problem is None
+
+
+def test_explain_netsh_failure():
+    assert "exit 1" in wifi.explain(Result(1, "", "The Wireless AutoConfig Service (wlansvc) is not running."))
+
+
 def test_ssid_with_spaces():
     text = NETSH_REAL.replace("SSID                   : Pribadi", "SSID                   : My Home 5G")
     assert wifi.parse_ssid(text) == "My Home 5G"

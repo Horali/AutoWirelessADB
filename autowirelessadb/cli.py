@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import logging
 import logging.handlers
+import os
 import sys
+import time
 from pathlib import Path
 
 from . import config as _config
@@ -15,7 +17,8 @@ from .core import Controller
 
 def setup_logging(verbose: bool, to_file: bool) -> None:
     handlers: list[logging.Handler] = []
-    if sys.stderr is not None:  # pythonw has no console
+    # pythonw has no console; the launcher sends stderr to a file and sets this flag.
+    if sys.stderr is not None and not os.environ.get("AWADB_NO_CONSOLE_LOG"):
         handlers.append(logging.StreamHandler())
     if to_file:
         d = _config.log_dir()
@@ -43,7 +46,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="allow legacy `adb tcpip 5555` if TLS fails (plaintext; off by default)",
     )
     sub = p.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("watch", help="run the background watcher")
+    w = sub.add_parser("watch", help="run the background watcher")
+    w.add_argument(
+        "--startup-delay", type=float, default=0,
+        help="seconds to wait before the first check (lets Wi-Fi come up at logon)",
+    )
     sub.add_parser("connect", help="one pass: connect now (enable over USB if needed)")
     sub.add_parser("off", help="set adb_wifi_enabled 0 and disconnect")
     sub.add_parser("status", help="show SSID, USB, mDNS and wireless state")
@@ -94,6 +101,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if st.wireless else 1
     if args.cmd == "watch":
         try:
+            if args.startup_delay > 0:
+                logging.info("startup delay %ss", args.startup_delay)
+                time.sleep(args.startup_delay)
             ctl.watch()
         except KeyboardInterrupt:
             pass

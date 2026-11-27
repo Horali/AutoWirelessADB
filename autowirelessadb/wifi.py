@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 import re
 
 from . import runner as _runner
 
+log = logging.getLogger(__name__)
+
 _SSID_RE = re.compile(r"^\s*SSID\s*:\s*(.*?)\s*$", re.MULTILINE)
 _STATE_RE = re.compile(r"^\s*State\s*:\s*(.*?)\s*$", re.MULTILINE)
+
+_last_problem: str | None = None
 
 
 def parse_ssid(text: str) -> str | None:
@@ -29,8 +34,26 @@ def location_blocked(text: str) -> bool:
     return "location" in text.lower() and "permission" in text.lower()
 
 
-def current_ssid(run: _runner.Runner = _runner.run) -> str | None:
-    res = run(["netsh", "wlan", "show", "interfaces"], 10)
+def explain(res: _runner.Result) -> str:
+    """Short reason why no SSID came back (for the log)."""
+    text = res.stdout + res.stderr
     if not res.ok:
-        return None
-    return parse_ssid(res.stdout)
+        return f"netsh exit {res.returncode}: {' '.join(text.split())[:160]}"
+    if location_blocked(text):
+        return "netsh hides the SSID: location access is off for desktop apps"
+    state = _STATE_RE.search(text)
+    if state:
+        return f"Wi-Fi state is {state.group(1)!r}"
+    return f"no Wi-Fi interface in netsh output: {' '.join(text.split())[:160]}"
+
+
+def current_ssid(run: _runner.Runner = _runner.run) -> str | None:
+    global _last_problem
+    res = run(["netsh", "wlan", "show", "interfaces"], 10)
+    ssid = parse_ssid(res.stdout) if res.ok else None
+    problem = None if ssid else explain(res)
+    if problem != _last_problem:  # log each new problem once, not every 5 s
+        if problem:
+            log.warning("no SSID: %s", problem)
+        _last_problem = problem
+    return ssid
