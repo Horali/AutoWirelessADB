@@ -47,8 +47,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("connect", help="one pass: connect now (enable over USB if needed)")
     sub.add_parser("off", help="set adb_wifi_enabled 0 and disconnect")
     sub.add_parser("status", help="show SSID, USB, mDNS and wireless state")
-    sub.add_parser("install-startup", help="run `watch` at logon (Task Scheduler)")
-    sub.add_parser("uninstall-startup", help="remove the logon task")
+    sub.add_parser("install-startup", help="run `watch` at logon (Startup folder shortcut)")
+    sub.add_parser("uninstall-startup", help="remove the Startup folder shortcut")
     sub.add_parser("config-path", help="print the config file path")
     return p
 

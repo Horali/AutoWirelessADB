@@ -123,8 +123,20 @@ def test_startup_command(tmp_path):
     assert "pythonw.exe" in cmd and "awadb_watch.pyw" in cmd
 
 
-def test_startup_install_uses_schtasks():
+def test_startup_install_writes_shortcut(tmp_path):
     calls = []
-    startup.install(lambda a, t: calls.append(list(a)) or Result(0, "SUCCESS"))
-    assert calls[0][:2] == ["schtasks", "/Create"]
-    assert "ONLOGON" in calls[0]
+    lnk = tmp_path / "Startup" / "AutoWirelessADB.lnk"
+    res = startup.install(lambda a, t: calls.append(list(a)) or Result(0, ""), lnk=lnk)
+    assert res.ok
+    script = calls[0][-1]
+    assert calls[0][0] == "powershell.exe"
+    assert "CreateShortcut" in script and str(lnk) in script
+    assert "awadb_watch.pyw" in script
+
+
+def test_startup_uninstall(tmp_path):
+    lnk = tmp_path / "x.lnk"
+    lnk.write_text("")
+    assert startup.uninstall(lnk).ok
+    assert not lnk.exists()
+    assert startup.uninstall(lnk).ok  # second call is harmless

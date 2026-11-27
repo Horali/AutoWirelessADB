@@ -33,7 +33,8 @@ as "not allowed".
    and add your home network: `allowed_ssids = ["MyHomeWifi"]`.
 4. Run `py -3.12 -m autowirelessadb connect` to test one pass.
 5. Run `py -3.12 -m autowirelessadb install-startup` to start the watcher at
-   logon (Task Scheduler, no console window).
+   logon. This adds `AutoWirelessADB.lnk` to your Startup folder (no admin
+   rights, no console window).
 
 ## Commands
 
@@ -43,7 +44,7 @@ as "not allowed".
 | `connect` | Do one check now. |
 | `status` | Show the state. Read-only: it changes nothing. |
 | `off` | Set `adb_wifi_enabled 0`, reset legacy tcpip mode, disconnect. |
-| `install-startup` / `uninstall-startup` | Add or remove the logon task. |
+| `install-startup` / `uninstall-startup` | Add or remove the Startup folder shortcut. |
 | `config-path` | Print the config file path. |
 
 Global flags: `--config <path>`, `-v`, `--fallback-tcpip`.
